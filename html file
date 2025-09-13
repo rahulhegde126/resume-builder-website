@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>[Your Name] - Interactive Resume</title>
+    
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter & Lato -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Base styles */
+        body { background-color: #f3f4f6; }
+
+        [contenteditable="true"]:focus {
+            outline: 2px dashed #60a5fa;
+            background-color: #f9fafb;
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.3);
+        }
+
+        .resume-container {
+            background-color: white;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            border-radius: 0.5rem;
+            transition: all 0.3s ease-in-out;
+        }
+        
+        /* Edit Menu styles */
+        #edit-menu { transition: transform 0.3s ease-in-out; }
+        #edit-menu input, #edit-menu textarea, #edit-menu select {
+            background-color: #374151; border: 1px solid #4b5563; border-radius: 0.375rem;
+            padding: 0.5rem; width: 100%; color: white;
+        }
+        #edit-menu input:focus, #edit-menu textarea:focus, #edit-menu select:focus {
+            outline: none; --tw-ring-color: #3b82f6; box-shadow: 0 0 0 2px var(--tw-ring-color);
+        }
+
+        /* --- THEME STYLES --- */
+
+        /* Theme: Onyx (Classic) */
+        .theme-onyx { font-family: 'Inter', sans-serif; }
+        .theme-onyx h1, .theme-onyx h2, .theme-onyx h3 { font-family: 'Inter', sans-serif; font-weight: 700; }
+        .theme-onyx h1 { color: #2d3748; }
+        .theme-onyx .section-title { color: #2d3748; border-color: #cbd5e0; }
+
+        /* Theme: Slate (Modern) */
+        .theme-slate { font-family: 'Lato', sans-serif; }
+        .theme-slate h1, .theme-slate h2, .theme-slate h3 { font-family: 'Lato', sans-serif; font-weight: 700; }
+        .theme-slate h1 { color: #4A5568; }
+        .theme-slate .section-title {
+            color: #4A5568;
+            border-color: #a0aec0;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Theme: Navy (Corporate) */
+        .theme-navy { font-family: 'Inter', sans-serif; }
+        .theme-navy h1, .theme-navy h2, .theme-navy h3 { font-family: 'Inter', sans-serif; font-weight: 700; }
+        .theme-navy h1 { color: #2c5282; }
+        .theme-navy .section-title {
+            color: #2c5282;
+            border-color: #bee3f8;
+        }
+        .theme-navy header { border-bottom: 2px solid #e2e8f0; padding-bottom: 2rem; margin-bottom: 2rem !important; }
+
+        /* Theme: Minimalist (New theme based on provided resume) */
+        .theme-minimalist { font-family: 'Inter', sans-serif; }
+        .theme-minimalist h1, .theme-minimalist h2, .theme-minimalist h3 { font-family: 'Inter', sans-serif; font-weight: 700; color: #222; }
+        .theme-minimalist .section-title { color: #222; border-color: #e5e7eb; }
+        .theme-minimalist header { border-bottom: 1px solid #e5e7eb; padding-bottom: 1.5rem; margin-bottom: 1.5rem !important; }
+        .theme-minimalist p, .theme-minimalist li, .theme-minimalist strong, .theme-minimalist .italic { color: #444; }
+
+        /* Print styles */
+        @media print {
+            body { background-color: white; }
+            #edit-menu, #menu-toggle { display: none !important; }
+            .resume-container { margin: 0; padding: 0; box-shadow: none; border: none; max-width: 100%; }
+            main.lg\:pl-80 { padding-left: 0; }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 1024px) {
+            #edit-menu { position: fixed; top: 0; left: 0; bottom: 0; transform: translateX(-100%); z-index: 50; }
+            #edit-menu.open { transform: translateX(0); }
+            main.lg\:pl-80 { padding-left: 0; }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100">
+
+    <button id="menu-toggle" class="lg:hidden fixed top-4 left-4 z-50 bg-slate-700 text-white p-2 rounded-md shadow-lg">Menu</button>
+    <aside id="edit-menu" class="fixed top-0 left-0 h-screen w-72 bg-slate-800 text-white p-6 overflow-y-auto z-40">
+        <div id="edit-menu-content" class="space-y-6"></div>
+    </aside>
+
+    <main class="lg:pl-80 py-8 px-4 sm:px-8">
+        <div id="resume-container" class="resume-container mx-auto p-8 sm:p-12"></div>
+    </main>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // --- DATA ---
+        let resumeData = {
+            theme: "theme-minimalist",
+            name: "RAHUL N HEGDE",
+            profilePic: "", 
+            contact: {
+                address: "Bengaluru",
+                phone: "+91 916363224186",
+                email: "rahulhegde126@gmail.com",
+                website: "https://github.com/rahulhegde126"
+            },
+            sections: [
+                {
+                    title: "Education", type: "experienceList",
+                    items: [
+                        { title: "BTech in Electronics & communication", subtitle: "PES UNIVERSITY", dates: "2023-27", details: ["7.56 CGPA"] },
+                        { title: "Pre-university PCMCs", subtitle: "KLE Prerana Residential PU college", dates: "2021-2023", details: ["90%"] },
+                        { title: "Secondary Education", subtitle: "SSEM, Bhairumbe", dates: "2019-2021", details: ["97.92%"] }
+                    ]
+                },
+                {
+                    title: "Projects", type: "experienceList",
+                    items: [
+                         { title: "ECO Mender Bot", subtitle: "IIT Bombay, (Aug 2024 - Mar 2025)", details: ["Designed and implemented a custom RISC-V processor from ISA using Verilog, later pipelined and deployed on a DEO-Nano FPGA", "Used the CPU to compute Dijkstra's algorithm for shortest-path planning in autonomous robots.", "Implemented UART communication in Verilog and interfaced it with HC-05 Bluetooth module for wireless control.", "Completed up to Task 4 of the IIT Bombay EYRC (ECO Mendor theme)."] },
+                        { title: "IPv4 Datagram Verification", subtitle: "RV College of Engineering (June 2025)", details: ["Developed a UVM-based verification environment with reusable agents, monitors, and a scoreboard for IPv4 packet validation.", "Implemented constrained-random stimulus, functional coverage, and assertions for header fields, checksum, and fragmentation.", "Performed error injection (malformed packets, checksum errors) to validate DUT robustness and protocol compliance."] },
+                        { title: "MineGuard AI", subtitle: "RV College of Engineering (Mar 2025-May 2025)", details: ["Developed ESP32-based embedded system integrating physiological and environmental sensors for continuous real-time monitoring.", "Integrated LoRa communication and deployed TinyML models for on-device fall detection, health anomaly detection, and emergency alerts."] }
+                    ]
+                },
+                {
+                    title: "Technical Skills", type: "keyValueList",
+                    items: [
+                        { label: "Tools and Technologies", value: "Vivado, Quartus Prime, Modelsim, Matlab, Cadence Virtuoso, EDA Playground" },
+                        { label: "Programming Languages", value: "C, C++, Python, Verilog HDL, System Verilog" },
+                        { label: "Certifications", value: "Networking Basics - Cisco, Python Bootcamp - Udemy" }
+                    ]
+                }
+            ]
+        };
+
+        const resumeContainer = document.getElementById('resume-container');
+        const editMenuContent = document.getElementById('edit-menu-content');
+        const menuToggle = document.getElementById('menu-toggle');
+        const editMenu = document.getElementById('edit-menu');
+
+        // --- DATA PERSISTENCE FUNCTIONS ---
+        const LOCAL_STORAGE_KEY = 'resumeData';
+
+        function saveData() {
+            try {
+                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(resumeData));
+            } catch (e) {
+                console.error("Could not save data to local storage", e);
+            }
+        }
+
+        function loadData() {
+            try {
+                const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+                if (savedData) {
+                    resumeData = JSON.parse(savedData);
+                }
+            } catch (e) {
+                console.error("Could not load data from local storage", e);
+            }
+        }
+
+        // --- RENDER FUNCTIONS ---
+        
+        function renderResume() {
+            resumeContainer.className = `resume-container mx-auto p-8 sm:p-12 ${resumeData.theme}`;
+            
+            // Conditional rendering for the profile picture
+            let profilePicHtml = '';
+            if (resumeData.profilePic) {
+                profilePicHtml = `<img id="profile-pic" src="${resumeData.profilePic}" alt="Profile Picture" class="w-28 h-28 sm:w-32 sm:h-32 rounded-full object-cover shadow-md border-4 border-white">`;
+            } else {
+                profilePicHtml = `
+                    <div id="add-photo-placeholder" class="w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-center p-2 cursor-pointer border-2 border-dashed border-gray-400">
+                        <span class="text-sm font-semibold leading-tight">Add<br>Photo</span>
+                    </div>`;
+            }
+
+            const headerHtml = `
+                <header class="flex flex-col-reverse items-center text-center sm:flex-row sm:text-left sm:items-start sm:justify-between">
+                    <div class="mt-6 sm:mt-0">
+                        <h1 contenteditable="true" data-key="name" class="text-4xl sm:text-5xl uppercase tracking-wide">${resumeData.name}</h1>
+                        <div class="mt-4 space-y-2 text-sm text-gray-600">
+                            <p><strong class="font-semibold">Address:</strong> <span contenteditable="true" data-key="contact.address">${resumeData.contact.address}</span></p>
+                            <p><strong class="font-semibold">Phone:</strong> <span contenteditable="true" data-key="contact.phone">${resumeData.contact.phone}</span></p>
+                            <p><strong class="font-semibold">Email:</strong> <span contenteditable="true" data-key="contact.email">${resumeData.contact.email}</span></p>
+                            <p><strong class="font-semibold">Website:</strong> <span contenteditable="true" data-key="contact.website">${resumeData.contact.website}</span></p>
+                        </div>
+                    </div>
+                    <div class="flex-shrink-0 sm:ml-8">
+                        ${profilePicHtml}
+                    </div>
+                </header>`;
+
+            const sectionsHtml = resumeData.sections.map((section, sectionIndex) => {
+                let contentHtml = '';
+                switch(section.type) {
+                    case 'paragraph':
+                        contentHtml = `<p contenteditable="true" data-key="sections[${sectionIndex}].content" class="mt-4 text-gray-700 leading-relaxed">${section.content}</p>`;
+                        break;
+                    case 'experienceList':
+                        contentHtml = `<div class="mt-4 space-y-6">${section.items.map((item, itemIndex) => `
+                            <div>
+                                <div class="flex flex-col sm:flex-row justify-between">
+                                    <h3 contenteditable="true" data-key="sections[${sectionIndex}].items[${itemIndex}].title" class="text-lg text-gray-900">${item.title}</h3>
+                                    <p contenteditable="true" data-key="sections[${sectionIndex}].items[${itemIndex}].dates" class="text-sm sm:text-base text-gray-600 mt-1 sm:mt-0 font-semibold">${item.dates}</p>
+                                </div>
+                                <p contenteditable="true" data-key="sections[${sectionIndex}].items[${itemIndex}].subtitle" class="italic text-gray-700 mt-1">${item.subtitle}</p>
+                                <ul class="mt-2 list-disc pl-5 text-gray-700 space-y-1">
+                                    ${item.details.map((detail, dIndex) => `<li contenteditable="true" data-key="sections[${sectionIndex}].items[${itemIndex}].details[${dIndex}]">${detail}</li>`).join('')}
+                                </ul>
+                            </div>`).join('')}</div>`;
+                        break;
+                    case 'keyValueList':
+                        contentHtml = `<ul class="mt-4 text-gray-700 space-y-2">${section.items.map((item, itemIndex) => `
+                            <li>
+                                <strong contenteditable="true" data-key="sections[${sectionIndex}].items[${itemIndex}].label" class="font-semibold">${item.label}:</strong>
+                                <span contenteditable="true" data-key="sections[${sectionIndex}].items[${itemIndex}].value">${item.value}</span>
+                            </li>`).join('')}</ul>`;
+                        break;
+                }
+                return `<section class="mb-8">
+                            <h2 contenteditable="true" data-key="sections[${sectionIndex}].title" class="section-title text-xl pb-2 border-b-2">${section.title}</h2>
+                            ${contentHtml}
+                        </section>`;
+            }).join('');
+            
+            resumeContainer.innerHTML = headerHtml + `<div class="mt-8">${sectionsHtml}</div>`;
+        }
+
+        function renderEditMenu() {
+            const generalHtml = `
+                <h2 class="text-2xl font-bold border-b border-slate-600 pb-2">Edit Menu</h2>
+                <div class="space-y-3">
+                    <h3 class="font-semibold text-lg">General</h3>
+                    <label class="text-sm">Theme</label>
+                    <select id="theme-select" data-key="theme">
+                        <option value="theme-onyx" ${resumeData.theme === 'theme-onyx' ? 'selected' : ''}>Onyx</option>
+                        <option value="theme-slate" ${resumeData.theme === 'theme-slate' ? 'selected' : ''}>Slate</option>
+                        <option value="theme-navy" ${resumeData.theme === 'theme-navy' ? 'selected' : ''}>Navy</option>
+                        <option value="theme-minimalist" ${resumeData.theme === 'theme-minimalist' ? 'selected' : ''}>Minimalist</option>
+                    </select>
+                    <!-- File input for profile picture -->
+                    <label class="text-sm">Profile Picture</label>
+                    <input type="file" id="profile-pic-input" accept="image/*" class="w-full mt-1 bg-slate-700 hover:bg-slate-600 p-2 rounded-md font-semibold">
+                    <button id="clear-photo-btn" class="w-full mt-2 bg-red-600 hover:bg-red-500 p-2 rounded-md font-semibold ${resumeData.profilePic ? '' : 'hidden'}">Clear Photo</button>
+                    <button id="print-button" class="w-full mt-2 bg-sky-600 hover:bg-sky-500 p-2 rounded-md font-semibold">Print / Save PDF</button>
+                </div>`;
+            
+            const personalInfoHtml = `
+                <div class="space-y-3 pt-4 border-t border-slate-600">
+                    <h3 class="font-semibold text-lg">Personal Info</h3>
+                    <label class="text-sm">Full Name</label><input type="text" data-key="name" value="${resumeData.name}">
+                    <label class="text-sm">Address</label><input type="text" data-key="contact.address" value="${resumeData.contact.address}">
+                    <label class="text-sm">Phone</label><input type="text" data-key="contact.phone" value="${resumeData.contact.phone}">
+                    <label class="text-sm">Email</label><input type="text" data-key="contact.email" value="${resumeData.contact.email}">
+                    <label class="text-sm">Website</label><input type="text" data-key="contact.website" value="${resumeData.contact.website}">
+                </div>`;
+            
+            const sectionsMenuHtml = resumeData.sections.map((section, sectionIndex) => {
+                let contentFields = '';
+                switch(section.type) {
+                    case 'paragraph':
+                        contentFields = `<textarea data-key="sections[${sectionIndex}].content" rows="5" placeholder="Content">${section.content}</textarea>`;
+                        break;
+                    case 'experienceList':
+                        contentFields = section.items.map((item, itemIndex) => `
+                            <div class="p-2 bg-slate-600/50 rounded-md space-y-2 mt-2">
+                                <div class="flex justify-between items-center"><p class="text-xs">Item ${itemIndex+1}</p><button data-action="removeItem" data-section-index="${sectionIndex}" data-item-index="${itemIndex}" class="bg-red-600 hover:bg-red-500 text-xs px-2 py-1 rounded-md">-</button></div>
+                                <input type="text" data-key="sections[${sectionIndex}].items[${itemIndex}].title" value="${item.title}" placeholder="Title/Degree">
+                                <input type="text" data-key="sections[${sectionIndex}].items[${itemIndex}].subtitle" value="${item.subtitle}" placeholder="Company/University">
+                                <input type="text" data-key="sections[${sectionIndex}].items[${itemIndex}].dates" value="${item.dates}" placeholder="Dates">
+                                <textarea data-key="sections[${sectionIndex}].items[${itemIndex}].details" placeholder="Details (one per line)">${item.details.join('\n')}</textarea>
+                            </div>`).join('') + `<button data-action="addItem" data-section-index="${sectionIndex}" class="w-full mt-2 bg-green-600 hover:bg-green-500 text-xs p-1 rounded-md">Add Item</button>`;
+                        break;
+                    case 'keyValueList':
+                        contentFields = section.items.map((item, itemIndex) => `
+                            <div class="p-2 bg-slate-600/50 rounded-md space-y-2 mt-2">
+                                <div class="flex justify-between items-center"><p class="text-xs">Item ${itemIndex+1}</p><button data-action="removeItem" data-section-index="${sectionIndex}" data-item-index="${itemIndex}" class="bg-red-600 hover:bg-red-500 text-xs px-2 py-1 rounded-md">-</button></div>
+                                <input type="text" data-key="sections[${sectionIndex}].items[${itemIndex}].label" value="${item.label}" placeholder="Label">
+                                <input type="text" data-key="sections[${sectionIndex}].items[${itemIndex}].value" value="${item.value}" placeholder="Value">
+                            </div>`).join('') + `<button data-action="addItem" data-section-index="${sectionIndex}" class="w-full mt-2 bg-green-600 hover:bg-green-500 text-xs p-1 rounded-md">Add Item</button>`;
+                        break;
+                }
+
+                return `
+                    <div class="p-3 bg-slate-700 rounded-md space-y-2">
+                        <div class="flex justify-between items-center">
+                            <p class="text-sm font-semibold">Section: ${section.title}</p>
+                            <div class="flex items-center space-x-1">
+                                <button data-action="moveSection" data-direction="-1" data-section-index="${sectionIndex}" class="bg-slate-500 hover:bg-slate-400 text-xs px-2 py-1 rounded-md" ${sectionIndex === 0 ? 'disabled' : ''}>▲</button>
+                                <button data-action="moveSection" data-direction="1" data-section-index="${sectionIndex}" class="bg-slate-500 hover:bg-slate-400 text-xs px-2 py-1 rounded-md" ${sectionIndex === resumeData.sections.length - 1 ? 'disabled' : ''}>▼</button>
+                                <button data-action="removeSection" data-section-index="${sectionIndex}" class="bg-red-600 hover:bg-red-500 text-xs px-2 py-1 rounded-md">✕</button>
+                            </div>
+                        </div>
+                        <input type="text" data-key="sections[${sectionIndex}].title" value="${section.title}" placeholder="Section Title">
+                        ${contentFields}
+                    </div>`;
+            }).join('');
+
+            const manageSectionsHtml = `
+                <div class="space-y-3 pt-4 border-t border-slate-600">
+                    <h3 class="font-semibold text-lg">Manage Sections</h3>
+                    <select id="add-section-select">
+                        <option value="paragraph">Paragraph Section</option>
+                        <option value="experienceList">Experience List Section</option>
+                        <option value="keyValueList">Key-Value List Section</option>
+                    </select>
+                    <button id="add-section-btn" class="w-full mt-2 bg-blue-600 hover:bg-blue-500 p-2 rounded-md font-semibold">Add New Section</button>
+                </div>`;
+
+            editMenuContent.innerHTML = generalHtml + personalInfoHtml + `<div class="pt-4 border-t border-slate-600">${sectionsMenuHtml}</div>` + manageSectionsHtml;
+            addEditMenuListeners();
+        }
+
+        // --- EVENT HANDLERS & HELPERS ---
+        
+        function updateData(key, value) {
+            let keys = key.split(/\[|\]\.|\.|\[|\]/g).filter(Boolean);
+            let current = resumeData;
+            for (let i = 0; i < keys.length - 1; i++) {
+                current = current[keys[i]];
+            }
+            if (key.includes('.details')) {
+                current[keys[keys.length - 1]] = value.split('\n').filter(line => line.trim() !== '');
+            } else {
+                current[keys[keys.length - 1]] = value;
+            }
+        }
+
+        function handleInput(e) {
+            const key = e.target.dataset.key;
+            if (key) {
+                const value = e.target.isContentEditable ? e.target.innerText : e.target.value;
+                updateData(key, value);
+                if (e.target.closest('#edit-menu')) {
+                    renderResume();
+                } else {
+                    renderEditMenu();
+                }
+                saveData(); // Save data on every input
+            }
+        }
+        
+        function handleMenuActions(e) {
+            const button = e.target.closest('button');
+            if (!button) return;
+
+            const { action, sectionIndex, itemIndex, direction } = button.dataset;
+            
+            switch(action) {
+                case 'removeSection': resumeData.sections.splice(sectionIndex, 1); break;
+                case 'moveSection':
+                    const newIndex = parseInt(sectionIndex) + parseInt(direction);
+                    if (newIndex >= 0 && newIndex < resumeData.sections.length) {
+                        [resumeData.sections[sectionIndex], resumeData.sections[newIndex]] = [resumeData.sections[newIndex], resumeData.sections[sectionIndex]];
+                    }
+                    break;
+                case 'addItem':
+                    const section = resumeData.sections[sectionIndex];
+                    if (section.type === 'experienceList') section.items.push({ title: "New Title", subtitle: "New Subtitle", dates: "Dates", details: ["New detail."] });
+                    else if (section.type === 'keyValueList') section.items.push({ label: "New Label", value: "New Value" });
+                    break;
+                case 'removeItem': resumeData.sections[sectionIndex].items.splice(itemIndex, 1); break;
+            }
+            if (action) {
+                renderAll();
+                saveData(); // Save data after a menu action
+            }
+        }
+
+        function addEditMenuListeners() {
+            document.getElementById('print-button').addEventListener('click', () => window.print());
+            document.getElementById('clear-photo-btn').addEventListener('click', () => {
+                resumeData.profilePic = '';
+                renderAll();
+            });
+            document.getElementById('add-section-btn').addEventListener('click', () => {
+                const type = document.getElementById('add-section-select').value;
+                let newSection;
+                switch(type) {
+                    case 'paragraph': newSection = { title: "New Section", type: "paragraph", content: "This is a new paragraph." }; break;
+                    case 'experienceList': newSection = { title: "New Experience", type: "experienceList", items: [{ title: "Job Title", subtitle: "Company", dates: "Year - Year", details: ["Responsibility 1"] }] }; break;
+                    case 'keyValueList': newSection = { title: "New Skills", type: "keyValueList", items: [{ label: "Skill", value: "Details" }] }; break;
+                }
+                resumeData.sections.push(newSection);
+                renderAll();
+            });
+            editMenuContent.addEventListener('click', handleMenuActions);
+        }
+        
+        // Handle file upload for profile picture
+        function handleProfilePicUpload(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    resumeData.profilePic = event.target.result;
+                    renderAll();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        function setupResumeListeners() {
+            // Trigger the hidden file input when the placeholder is clicked
+            const photoPlaceholder = document.getElementById('add-photo-placeholder');
+            if (photoPlaceholder) {
+                photoPlaceholder.addEventListener('click', () => {
+                    document.getElementById('profile-pic-input').click();
+                });
+            }
+        }
+
+        function renderAll() {
+            renderResume();
+            renderEditMenu();
+            // Re-add event listeners for dynamic elements
+            setupResumeListeners();
+        }
+
+        // --- INITIALIZATION ---
+        
+        loadData(); // Load data before initial render
+        
+        document.body.addEventListener('input', handleInput);
+        menuToggle.addEventListener('click', () => editMenu.classList.toggle('open'));
+        document.querySelector('main').addEventListener('click', () => {
+            if (window.innerWidth <= 1024 && editMenu.classList.contains('open')) {
+                editMenu.classList.remove('open');
+            }
+        });
+
+        // Event listener for the hidden file input
+        document.addEventListener('change', function(e) {
+            if (e.target.id === 'profile-pic-input') {
+                handleProfilePicUpload(e);
+            }
+        });
+
+        renderAll();
+    });
+    </script>
+</body>
+</html>
